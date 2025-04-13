@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Calculadora Penal - Horizonte RP</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Orbitron', sans-serif;
+      background: #0d1117;
+      color: #c9d1d9;
+      padding: 20px;
+      display: flex;  
+      flex-direction: column;
+      align-items: center; /* Centraliza o conteúdo */
+      justify-content: flex-start;
+    }
+    h1 {
+      text-align: center;
+      color: #ffd000;
+      font-size: 2.5rem;
+      margin-bottom: 30px;
+      text-shadow: 0 0 6px #ffc400;
+    }
+    h2 {
+      color: #ffbb00;
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #ffc400;
+      padding-bottom: 5px;
+    }
+    .info-inputs, .search-box, .crime-list, .result {
+      max-width: 600px;
+      margin: auto;
+    }
+    .logo {
+      display: block;
+      max-width: 200px;
+      margin: 0 auto 20px; /* Centraliza a logo */
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: none;
+      margin-bottom: 15px;
+      font-size: 1rem;
+      background-color: #161b22;
+      color: #fff;
+      outline: none;
+      transition: 0.2s;
+    }
+    input[type="text"]:focus {
+      border: 1px solid #eeff00;
+    }
+    .crime {
+      background: #161b22;
+      border: 1px solid #2b3137;
+      border-left: 5px solid #ff0000;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 10px;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .crime input {
+      transform: scale(1.2);
+    }
+    .crime label {
+      flex: 1;
+      cursor: pointer;
+    }
+    .result {
+      background: #0e131a;
+      padding: 20px;
+      margin-top: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,255,195,0.25);
+    }
+    .result p {
+      margin: 10px 0;
+      font-size: 1rem;
+    }
+    button {
+      width: 100%;
+      margin-top: 20px;
+      padding: 12px;
+      background: #e5ff00;
+      border: none;
+      color: #000;
+      font-weight: bold;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    button:hover {
+      background: #743800;
+    }
+  </style>
+</head>
+<body>
+  <!-- Logo fixa no topo -->
+  <img src="https://cdn.discordapp.com/attachments/1339039493566501055/1360835287822893247/HorizonteRp_png2.0.png?ex=67fc901f&is=67fb3e9f&hm=4e163ff00ae1a34b4402d089bef2971496fd6e43d533ba165d3b1c6021cddd80&" alt="Logo" class="logo" />
+
+  <h1>🚨 Calculadora Penal - Horizonte RP</h1>
+
+  <div class="info-inputs">
+    <div style="margin-top: 10px;">
+      <label><input type="checkbox" id="colaboracao" onchange="calculateResult()"> Colaboração com a Justiça (-30%)</label><br/>
+      <label><input type="checkbox" id="reu-primario" onchange="calculateResult()"> Réu Primário (-20%)</label>
+    </div>
+
+    <h2>📋 Informações do Registro</h2>
+    <input type="text" id="id-preso" placeholder="ID do Preso" />
+    <input type="text" id="id-advogado" placeholder="ID do Advogado" />
+    <input type="text" id="nome-preso" placeholder="Nome do Preso" />
+    <input type="text" id="id-policial" placeholder="ID do Policial" />
+  </div>
+
+  <div class="search-box">
+    <input type="text" id="search" placeholder="🔍 Buscar crime..."/>
+  </div>
+
+  <div class="crime-list" id="crime-list"></div>
+
+  <div class="result">
+    <p><strong>👤 ID do Preso:</strong> <span id="res-id-preso">-</span></p>
+    <p><strong>👤 ID do Advogado:</strong> <span id="res-id-advogado">-</span></p>
+    <p><strong>🧾 Nome do Preso:</strong> <span id="res-nome-preso">-</span></p>
+    <p><strong>👮 ID do Policial:</strong> <span id="res-id-policial">-</span></p>
+    <p><strong>💸 Multa Total:</strong> R$ <span id="total-multa">0</span></p>
+    <p><strong>⏱️ Tempo de Prisão:</strong> <span id="total-tempo">0</span> meses</p>
+    <button onclick="copiarResultado()">📋 Copiar Resultado</button>
+  </div>
+
+  <script>
+    const crimes = [
+        {art: 1, descricao: "Abuso de Autoridade", sentenca: 50, multa: 300000, fianca: 0},
+        {art: 2, descricao: "Corrupção Passiva e/ou Ativa", sentenca: 30, multa: 300000, fianca: 0},
+        {art: 3, descricao: "Desacato", sentenca: 20, multa: 150000, fianca: 300000},
+        {art: 4, descricao: "Impedir Exercício Profissional", sentenca: 50, multa: 300000, fianca: 0},
+        {art: 5, descricao: "Prevaricação", sentenca: 30, multa: 100000, fianca: 0},
+        {art: 6, descricao: "Prisão Disciplinar", sentenca: 30, multa: 150000, fianca: 300000},
+        {art: 7, descricao: "Tráfico de Influência", sentenca: 30, multa: 300000, fianca: 0},
+        {art: 8, descricao: "Uso Irregular de Função Pública", sentenca: 30, multa: 200000, fianca: 0},
+        {art: 9, descricao: "Tentativa de Homicídio", sentenca: 30, multa: 300000, fianca: 0},
+        {art: 10, descricao: "Homicídio Culposo", sentenca: 30, multa: 300000, fianca: 0},
+        {art: 11, descricao: "Homicídio Doloso", sentenca: 40, multa: 300000, fianca: 0},
+        {art: 12, descricao: "Homicídio Qualificado", sentenca: 50, multa: 400000, fianca: 0},
+        {art: 13, descricao: "Latrocínio", sentenca: 60, multa: 400000, fianca: 0},
+        {art: 14, descricao: "Assédio Moral", sentenca: 10, multa: 100000, fianca: 200000},
+        {art: 15, descricao: "Calúnia", sentenca: 10, multa: 100000, fianca: 200000},
+        {art: 16, descricao: "Difamação", sentenca: 10, multa: 100000, fianca: 200000},
+        {art: 17, descricao: "Injúria", sentenca: 10, multa: 100000, fianca: 200000},
+        {art: 18, descricao: "Importunação Sexual", sentenca: 10, multa: 100000, fianca: 200000},
+        {art: 19, descricao: "Perjúrio", sentenca: 10, multa: 100000, fianca: 200000},
+        {art: 20, descricao: "Abandono de Incapaz", sentenca: 100, multa: 200000, fianca: 0},
+        {art: 21, descricao: "Adultério", sentenca: 50, multa: 200000, fianca: 2000000},
+        {art: 22, descricao: "Bigamia", sentenca: 50, multa: 200000, fianca: 2000000},
+        {art: 23, descricao: "Crime Sexual Intrafamiliar", sentenca: 50, multa: 200000, fianca: 2000000},
+        {art: 24, descricao: "Ameaça", sentenca: 20, multa: 100000, fianca: 200000},
+        {art: 25, descricao: "Extorsão", sentenca: 10, multa: 50000, fianca: 100000},
+        {art: 26, descricao: "Lesão Corporal", sentenca: 20, multa: 100000, fianca: 200000},
+        {art: 27, descricao: "Sequestro", sentenca: 30, multa: 200000, fianca: 0},
+        {art: 28, descricao: "Tortura", sentenca: 50, multa: 400000, fianca: 0},
+        {art: 29, descricao: "Vandalismo", sentenca: 10, multa: 50000, fianca: 100000},
+        {art: 30, descricao: "Dano de Propriedade do Governo", sentenca: 10, multa: 100000, fianca: 200000},
+        {art: 31, descricao: "Estelionato", sentenca: 10, multa: 100000, fianca: 200000},
+        {art: 32, descricao: "Invasão de Propriedade", sentenca: 10, multa: 100000, fianca: 200000},
+        {art: 33, descricao: "Furto", sentenca: 20, multa: 150000, fianca: 300000},
+        {art: 34, descricao: "Roubo", sentenca: 10, multa: 50000, fianca: 100000},
+        {art: 35, descricao: "Posse de Produtos Ilegais", sentenca: 20, multa: 100000, fianca: 200000},
+        {art: 36, descricao: "Tráfico de Produtos Ilegais", sentenca: 30, multa: 100000, fianca: 200000},
+        {art: 37, descricao: "Posse de Peças de Armas", sentenca: 0, multa: 0, fianca: 0},
+        {art: 38, descricao: "Posse de Cápsula", sentenca: 0, multa: 0, fianca: 0},
+        {art: 39, descricao: "Porte de Arma Leve", sentenca: 20, multa: 100000, fianca: 200000},
+        {art: 40, descricao: "Tráfico de Armas Leve", sentenca: 40, multa: 300000, fianca: 0},
+        {art: 41, descricao: "Porte de Arma Pesada", sentenca: 50, multa: 300000, fianca: 0}
+    ];
+
+    let searchInput = document.getElementById("search");
+    let crimeList = document.getElementById("crime-list");
+
+    searchInput.addEventListener("input", function () {
+      let searchTerm = searchInput.value.toLowerCase();
+      crimeList.innerHTML = '';
+      crimes.filter(crime => crime.descricao.toLowerCase().includes(searchTerm)).forEach(crime => {
+        let crimeItem = document.createElement("div");
+        crimeItem.classList.add("crime");
+        crimeItem.innerHTML = `
+          <input type="checkbox" data-crime="${crime.art}" onchange="calculateResult()"/>
+          <label>${crime.descricao}</label>
+        `;
+        crimeList.appendChild(crimeItem);
+      });
+    });
+
+    function calculateResult() {
+      const idPreso = document.getElementById('id-preso').value;
+      const nomePreso = document.getElementById('nome-preso').value;
+      const idPolicial = document.getElementById('id-policial').value;
+      const idAdvogado = document.getElementById('id-advogado').value;
+
+      document.getElementById('res-id-preso').textContent = idPreso || '-';
+      document.getElementById('res-nome-preso').textContent = nomePreso || '-';
+      document.getElementById('res-id-policial').textContent = idPolicial || '-';
+      document.getElementById('res-id-advogado').textContent = idAdvogado || '-';
+
+      const selectedCrimes = document.querySelectorAll('.crime input:checked');
+      let totalSentenca = 0;
+      let totalMulta = 0;
+
+      selectedCrimes.forEach(crime => {
+        const crimeData = crimes.find(c => c.art == crime.dataset.crime);
+        totalSentenca += crimeData.sentenca;
+        totalMulta += crimeData.multa;
+      });
+
+      // Verifica os checkboxes de redução
+      const colaboracao = document.getElementById('colaboracao').checked;
+      const reuPrimario = document.getElementById('reu-primario').checked;
+
+      let reducao = 0;
+      if (colaboracao) reducao += 0.30;
+      if (reuPrimario) reducao += 0.20;
+
+      const tempoReduzido = Math.round(totalSentenca * (1 - reducao));
+
+      document.getElementById('total-tempo').textContent = tempoReduzido;
+      document.getElementById('total-multa').textContent = totalMulta.toLocaleString('pt-BR');
+    }
+
+    function copiarResultado() {
+      const resultado = `
+ID do Preso: ${document.getElementById('res-id-preso').textContent}
+Nome do Preso: ${document.getElementById('res-nome-preso').textContent}
+ID do Policial: ${document.getElementById('res-id-policial').textContent}
+ID do Advogado: ${document.getElementById('res-id-advogado').textContent}
+Multa Total: R$ ${document.getElementById('total-multa').textContent}
+Tempo de Prisão: ${document.getElementById('total-tempo').textContent} meses
+`;
+      navigator.clipboard.writeText(resultado).then(() => alert("Resultado copiado para a área de transferência!"));
+    }
+  </script>
+</body>
+</html>
